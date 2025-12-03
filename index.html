@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Pfadfinder Weltkarte</title>
+
+  <!-- Leaflet CSS für die Karte -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
+
+  <!-- Eigene Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="pf-header">
+    <div class="pf-header-inner">
+      <div class="pf-logo-circle">
+        <span>⛺</span>
+      </div>
+      <div class="pf-title-block">
+        <h1>Pfadfinder Weltkarte</h1>
+        <p>Dein ungefähiger Standort auf der großen Weltkarte – pfadfindersicher anonymisiert.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="pf-main">
+    <section class="pf-sidebar">
+      <div class="pf-card">
+        <h2>Deine ungefähre Position</h2>
+        <p id="status">Versuche, deine Position zu bestimmen …</p>
+        <p id="coords" class="pf-coords"></p>
+
+        <div class="pf-hint">
+          <strong>Datenschutz:</strong><br>
+          Die Position wird auf ganze Grad gerundet (ca. 100 km Genauigkeit).
+          Es wird nur ein Marker gezeigt, nichts gespeichert.
+        </div>
+
+        <div class="pf-badge">
+          <span class="pf-badge-title">Scout-Regel</span>
+          <p>Kein Tracking, kein Logging. Nur ein kurzer Marker auf der Karte für dich.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pf-map-wrapper">
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <!-- Leaflet JavaScript -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const statusElem = document.getElementById("status");
+    const coordsElem = document.getElementById("coords");
+    let map;
+
+    // Karte initialisieren (Weltansicht)
+    function initMap(lat = 20, lng = 0, zoom = 2) {
+      map = L.map("map").setView([lat, lng], zoom);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap-Mitwirkende"
+      }).addTo(map);
+    }
+
+    // Koordinaten anonymisieren: auf ganze Grad runden (~111 km)
+    function anonymizeCoords(lat, lng) {
+      const approxLat = Math.round(lat);
+      const approxLng = Math.round(lng);
+      return { approxLat, approxLng };
+    }
+
+    // Marker setzen und auf Position zoomen
+    function showApproxLocation(lat, lng) {
+      if (!map) {
+        initMap(lat, lng, 5);
+      } else {
+        map.setView([lat, lng], 5); // Zoomstufe 5 = Weltkarte, aber Fokus auf dich
+      }
+
+      L.marker([lat, lng]).addTo(map)
+        .bindPopup("Dein ungefährer Standort (max. ~100 km genau).")
+        .openPopup();
+    }
+
+    // Standort holen
+    function locateUser() {
+      if (!("geolocation" in navigator)) {
+        statusElem.textContent = "Dein Browser unterstützt keine Geolokalisierung.";
+        initMap();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          const { approxLat, approxLng } = anonymizeCoords(lat, lng);
+
+          statusElem.textContent = "Ungefährer Standort erkannt und auf der Karte markiert.";
+          coordsElem.textContent =
+            "Gerundete Koordinaten: " + approxLat.toFixed(0) + "°, " + approxLng.toFixed(0) + "°";
+
+          showApproxLocation(approxLat, approxLng);
+        },
+        (error) => {
+          statusElem.textContent = "Standort konnte nicht ermittelt werden: " + error.message;
+          initMap();
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 8000,
+          maximumAge: 60000
+        }
+      );
+    }
+
+    // Seite starten
+    initMap();     // Weltkarte grob anzeigen
+    locateUser();  // dann versuchen, den Standort zu holen
+  </script>
+</body>
+</html>
