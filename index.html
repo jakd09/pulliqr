@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Pfadfinder Weltkarte</title>
+  <title>Pfadfinder Weltkarte & Fun</title>
 
   <!-- Leaflet CSS für die Karte -->
   <link
@@ -12,48 +12,438 @@
     crossorigin=""
   >
 
-  <!-- Eigene Styles -->
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    /* Grundlayout */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1c291e;
+      color: #fbeed3;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Header + Navigation */
+    header {
+      background: linear-gradient(135deg, #223522, #31452c);
+      border-bottom: 4px solid #8b6b3e;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid #fbeed3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #8b6b3e;
+      box-shadow: 0 0 0 2px #2b3a27;
+      font-size: 26px;
+    }
+
+    .title-block h1 {
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .title-block p {
+      font-size: 12px;
+      color: #e2d5b5;
+      margin-top: 2px;
+    }
+
+    /* Navigation */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: 2px solid #fbeed3;
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: #fbeed3;
+      font-size: 14px;
+    }
+
+    nav {
+      display: flex;
+      gap: 12px;
+    }
+
+    nav a {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 14px;
+      background: rgba(31, 46, 30, 0.9);
+      border: 1px solid #8b6b3e;
+    }
+
+    nav a:hover {
+      background: #8b6b3e;
+      color: #1c1c1c;
+    }
+
+    /* Layout für Inhalt */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 10px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    section {
+      background: rgba(22, 26, 18, 0.95);
+      border-radius: 10px;
+      border: 2px solid #8b6b3e;
+      padding: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    section h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    section p {
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    /* Karte */
+    #map {
+      width: 100%;
+      height: 280px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .location-info {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .coords-box {
+      font-family: "Courier New", monospace;
+      background: rgba(33, 39, 28, 0.9);
+      border-radius: 6px;
+      padding: 6px 8px;
+      border: 1px dashed #c1b38f;
+      display: inline-block;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .hint-box {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(44, 56, 38, 0.9);
+      border-radius: 6px;
+      border-left: 4px solid #f5d37f;
+      font-size: 13px;
+    }
+
+    /* Fun Facts */
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .fact-card {
+      background: #2c3d28;
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid #c98b3d;
+      font-size: 13px;
+      position: relative;
+    }
+
+    .fact-card::before {
+      content: "⚜";
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      background: #1c291e;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #c98b3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .fact-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    /* Jump-and-Run */
+    #gameCanvas {
+      width: 100%;
+      max-width: 800px;
+      height: 260px;
+      border-radius: 8px;
+      background: linear-gradient(to top, #2c3d28 35%, #4c7cbc 100%);
+      display: block;
+      margin: 10px auto 8px;
+    }
+
+    .game-info {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .game-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-btn {
+      background: #31452c;
+      border: 1px solid #c98b3d;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: #fbeed3;
+    }
+
+    .ctrl-btn:active {
+      background: #c98b3d;
+      color: #1c1c1c;
+    }
+
+    .game-status {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* Impressum */
+    .impressum-list {
+      list-style: none;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .impressum-list li {
+      margin-bottom: 4px;
+    }
+
+    .placeholder {
+      color: #c1b38f;
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: #c1b38f;
+      padding: 6px 0 10px;
+    }
+
+    /* Leaflet Popups */
+    .leaflet-popup-content-wrapper {
+      background: #1f261c;
+      color: #fbeed3;
+      border-radius: 8px;
+      border: 2px solid #8b6b3e;
+    }
+
+    .leaflet-popup-tip {
+      background: #1f261c;
+      border-top: 2px solid #8b6b3e;
+      border-left: 2px solid #8b6b3e;
+    }
+
+    /* Responsive: Navigation als Burger-Menü */
+    @media (max-width: 720px) {
+      .header-inner {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      nav {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        display: none;
+        margin-top: 8px;
+      }
+
+      nav.open {
+        display: flex;
+      }
+
+      nav a {
+        font-size: 13px;
+      }
+
+      .nav-toggle {
+        display: inline-block;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <header class="pf-header">
-    <div class="pf-header-inner">
-      <div class="pf-logo-circle">
-        <span>⛺</span>
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <div class="logo-circle">⛺</div>
+        <div class="title-block">
+          <h1>Pfadfinder Weltkarte</h1>
+          <p>Wo Scouts unterwegs sind – plus Fun Facts & Mini-Game.</p>
+        </div>
       </div>
-      <div class="pf-title-block">
-        <h1>Pfadfinder Weltkarte</h1>
-        <p>Dein ungefähiger Standort auf der großen Weltkarte – pfadfindersicher anonymisiert.</p>
-      </div>
+
+      <button class="nav-toggle" id="navToggle">Menü</button>
+
+      <nav id="mainNav">
+        <a href="#map-section">Karte</a>
+        <a href="#facts-section">Fun Facts</a>
+        <a href="#game-section">Jump & Run</a>
+        <a href="#impressum-section">Impressum</a>
+      </nav>
     </div>
   </header>
 
-  <main class="pf-main">
-    <section class="pf-sidebar">
-      <div class="pf-card">
-        <h2>Deine ungefähre Position</h2>
+  <main>
+    <!-- Karte & Standort -->
+    <section id="map-section">
+      <h2>Dein ungefährer Standort</h2>
+      <p>Erlaube deinem Browser den Standortzugriff, dann siehst du ungefähr, wo du gerade auf der Welt unterwegs bist.</p>
+
+      <div id="map"></div>
+
+      <div class="location-info">
         <p id="status">Versuche, deine Position zu bestimmen …</p>
-        <p id="coords" class="pf-coords"></p>
-
-        <div class="pf-hint">
+        <div id="coords" class="coords-box"></div>
+        <div class="hint-box">
           <strong>Datenschutz:</strong><br>
-          Die Position wird auf ganze Grad gerundet (ca. 100 km Genauigkeit).
-          Es wird nur ein Marker gezeigt, nichts gespeichert.
-          Impressum: Kommt noch
-        </div>
-
-        <div class="pf-badge">
-          <span class="pf-badge-title">Scout-Regel</span>
-          <p>Kein Tracking, kein Logging. Nur ein kurzer Marker auf der Karte für dich.</p>
+          Die Koordinaten werden auf ganze Grad gerundet (ca. 100 km Genauigkeit).<br>
+          Nichts wird gespeichert – nur auf deiner Karte angezeigt.
         </div>
       </div>
     </section>
 
-    <section class="pf-map-wrapper">
-      <div id="map"></div>
+    <!-- Pfadfinder Fun Facts -->
+    <section id="facts-section">
+      <h2>Lustige Pfadfinder Fun Facts</h2>
+      <p>Ein paar spaßige, nicht ganz ernst gemeinte Beobachtungen aus der Pfadfinder-Welt:</p>
+
+      <div class="facts-grid">
+        <div class="fact-card">
+          <div class="fact-title">Knoten-Experten</div>
+          <p>Pfadfinder können aus 2 Metern Schnur, einer Socke und einem Stock ein voll funktionsfähiges Wäscheseil bauen.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-title">Tassen-Orakel</div>
+          <p>Je zerkratzter die Emaille-Tasse, desto höher der geheime Pfadfinder-Rang – das ist ungeschriebenes Gesetz.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-title">Schlafsack-Magie</div>
+          <p>Pfadfinder können in einem Schlafsack aus drei Dimensionen eine machen – inklusive Rucksack und halbem Zelt.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-title">Liedgut</div>
+          <p>Es existiert mindestens ein Lagerfeuer-Lied, das niemand komplett kennt – aber alle trotzdem laut mitsingen.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-title">Regen-Garantie</div>
+          <p>Die Wahrscheinlichkeit für Regen steigt statistisch um 87 %, sobald ein Zelt komplett aufgebaut ist.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-title">Kompass-Logik</div>
+          <p>Pfadfinder verlaufen sich nie – sie „erkunden alternative Routen“ mit sehr viel Selbstbewusstsein.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jump & Run Spiel -->
+    <section id="game-section">
+      <h2>Mini Jump & Run – Scout Run</h2>
+      <p class="game-info">
+        Steuere den kleinen Pfadfinder über Hindernisse. <br>
+        PC: Links/Rechts = Pfeiltasten oder A/D, Springen = Pfeil hoch oder W oder Leertaste. <br>
+        Handy: nutze die Buttons unter der Karte.
+      </p>
+
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="game-controls">
+        <button class="ctrl-btn" id="btnLeft">⬅ Links</button>
+        <button class="ctrl-btn" id="btnJump">⤴ Sprung</button>
+        <button class="ctrl-btn" id="btnRight">Rechts ➡</button>
+      </div>
+
+      <p id="gameStatus" class="game-status">Score: 0 – weiche den Baumstämmen aus!</p>
+    </section>
+
+    <!-- Impressum -->
+    <section id="impressum-section">
+      <h2>Impressum</h2>
+      <p class="placeholder">
+        Hinweis: Dieses Impressum ist noch nicht befüllt. Hier müssen später die rechtlich erforderlichen Angaben ergänzt werden.
+      </p>
+      <ul class="impressum-list">
+        <li>Betreiber der Website: <span class="placeholder">[Noch keine Angabe]</span></li>
+        <li>Anschrift: <span class="placeholder">[Noch keine Angabe]</span></li>
+        <li>Kontakt (E-Mail/Telefon): <span class="placeholder">[Noch keine Angabe]</span></li>
+        <li>Verantwortlich für den Inhalt: <span class="placeholder">[Noch keine Angabe]</span></li>
+      </ul>
     </section>
   </main>
+
+  <footer>
+    © <span id="yearSpan"></span> Pfadfinder Weltkarte – Demo-Seite (Impressum-Platzhalter)
+  </footer>
 
   <!-- Leaflet JavaScript -->
   <script
@@ -63,45 +453,48 @@
   ></script>
 
   <script>
+    // Jahr im Footer
+    document.getElementById("yearSpan").textContent = new Date().getFullYear();
+
+    // Navigation Toggle (Mobile)
+    const navToggle = document.getElementById("navToggle");
+    const mainNav = document.getElementById("mainNav");
+    navToggle.addEventListener("click", () => {
+      mainNav.classList.toggle("open");
+    });
+
+    // ======================
+    // Karte & Geolocation
+    // ======================
     const statusElem = document.getElementById("status");
     const coordsElem = document.getElementById("coords");
     let map;
 
-    // Karte initialisieren (Weltansicht)
     function initMap(lat = 20, lng = 0, zoom = 2) {
       map = L.map("map").setView([lat, lng], zoom);
-
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,
         attribution: "&copy; OpenStreetMap-Mitwirkende"
       }).addTo(map);
     }
 
-    // Koordinaten anonymisieren: auf ganze Grad runden (~111 km)
     function anonymizeCoords(lat, lng) {
       const approxLat = Math.round(lat);
       const approxLng = Math.round(lng);
       return { approxLat, approxLng };
     }
 
-    // Marker setzen und auf Position zoomen
-    function showApproxLocation(lat, lng) {
-      if (!map) {
-        initMap(lat, lng, 5);
-      } else {
-        map.setView([lat, lng], 5); // Zoomstufe 5 = Weltkarte, aber Fokus auf dich
-      }
-
+    function showMarker(lat, lng) {
+      map.setView([lat, lng], 5);
       L.marker([lat, lng]).addTo(map)
         .bindPopup("Dein ungefährer Standort (max. ~100 km genau).")
         .openPopup();
     }
 
-    // Standort holen
     function locateUser() {
       if (!("geolocation" in navigator)) {
         statusElem.textContent = "Dein Browser unterstützt keine Geolokalisierung.";
-        initMap();
+        coordsElem.textContent = "";
         return;
       }
 
@@ -109,18 +502,17 @@
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-
           const { approxLat, approxLng } = anonymizeCoords(lat, lng);
 
-          statusElem.textContent = "Ungefährer Standort erkannt und auf der Karte markiert.";
+          statusElem.textContent = "Ungefährer Standort erkannt.";
           coordsElem.textContent =
             "Gerundete Koordinaten: " + approxLat.toFixed(0) + "°, " + approxLng.toFixed(0) + "°";
 
-          showApproxLocation(approxLat, approxLng);
+          showMarker(approxLat, approxLng);
         },
         (error) => {
           statusElem.textContent = "Standort konnte nicht ermittelt werden: " + error.message;
-          initMap();
+          coordsElem.textContent = "";
         },
         {
           enableHighAccuracy: false,
@@ -130,9 +522,270 @@
       );
     }
 
-    // Seite starten
-    initMap();     // Weltkarte grob anzeigen
-    locateUser();  // dann versuchen, den Standort zu holen
+    initMap();
+    locateUser();
+
+    // ======================
+    // Jump & Run – Scout Run
+    // ======================
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gameStatusElem = document.getElementById("gameStatus");
+
+    function resizeCanvas() {
+      // Responsive Breite
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const keys = {
+      left: false,
+      right: false,
+      jump: false
+    };
+
+    // Player-Objekt
+    const player = {
+      x: 80,
+      y: 0,
+      width: 30,
+      height: 40,
+      vy: 0,
+      speed: 3,
+      jumpPower: 8,
+      onGround: false
+    };
+
+    let gravity = 0.4;
+    let groundY = () => canvas.height - 40;
+
+    // Hindernisse
+    let obstacles = [];
+    let spawnTimer = 0;
+    let spawnInterval = 120; // Frames
+    let score = 0;
+    let gameOver = false;
+
+    function resetGame() {
+      player.x = 80;
+      player.y = 0;
+      player.vy = 0;
+      player.onGround = false;
+      obstacles = [];
+      spawnTimer = 0;
+      score = 0;
+      gameOver = false;
+      gameStatusElem.textContent = "Score: 0 – weiche den Baumstämmen aus!";
+    }
+
+    // Tastatursteuerung
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
+      if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
+      if (e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Space") {
+        keys.jump = true;
+      }
+      if (e.code === "KeyR") {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+      if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+      if (e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Space") {
+        keys.jump = false;
+      }
+    });
+
+    // Mobile Buttons
+    const btnLeft = document.getElementById("btnLeft");
+    const btnRight = document.getElementById("btnRight");
+    const btnJump = document.getElementById("btnJump");
+
+    function bindTouchButton(element, keyName) {
+      element.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        keys[keyName] = true;
+      });
+      element.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        keys[keyName] = false;
+      });
+      element.addEventListener("mousedown", () => {
+        keys[keyName] = true;
+      });
+      element.addEventListener("mouseup", () => {
+        keys[keyName] = false;
+      });
+      element.addEventListener("mouseleave", () => {
+        keys[keyName] = false;
+      });
+    }
+
+    bindTouchButton(btnLeft, "left");
+    bindTouchButton(btnRight, "right");
+    bindTouchButton(btnJump, "jump");
+
+    function spawnObstacle() {
+      const height = 30 + Math.random() * 20;
+      obstacles.push({
+        x: canvas.width + 20,
+        y: groundY() - height,
+        width: 20 + Math.random() * 20,
+        height: height,
+        speed: 3 + Math.random() * 1.5
+      });
+    }
+
+    function updateGame() {
+      if (canvas.width === 0 || canvas.height === 0) return; // falls noch nicht sichtbar
+
+      if (gameOver) {
+        drawGame();
+        return;
+      }
+
+      // Boden aktualisieren (falls Canvas-Größe sich ändert)
+      const gY = groundY();
+
+      // Horizontalbewegung
+      if (keys.left) {
+        player.x -= player.speed;
+      }
+      if (keys.right) {
+        player.x += player.speed;
+      }
+
+      // Begrenzung
+      if (player.x < 10) player.x = 10;
+      if (player.x + player.width > canvas.width - 10) {
+        player.x = canvas.width - 10 - player.width;
+      }
+
+      // Schwerkraft + Sprung
+      player.vy += gravity;
+      player.y += player.vy;
+
+      // Boden-Kollision
+      if (player.y + player.height >= gY) {
+        player.y = gY - player.height;
+        player.vy = 0;
+        player.onGround = true;
+      } else {
+        player.onGround = false;
+      }
+
+      // Springen
+      if (keys.jump && player.onGround) {
+        player.vy = -player.jumpPower;
+        player.onGround = false;
+      }
+
+      // Hindernisse bewegen
+      spawnTimer++;
+      if (spawnTimer >= spawnInterval) {
+        spawnObstacle();
+        spawnTimer = 0;
+        if (spawnInterval > 70) spawnInterval -= 3; // schwieriger im Verlauf
+      }
+
+      obstacles.forEach((obs) => {
+        obs.x -= obs.speed;
+      });
+
+      // Hindernisse entfernen & Score erhöhen
+      obstacles = obstacles.filter((obs) => {
+        if (obs.x + obs.width < 0) {
+          score++;
+          gameStatusElem.textContent = "Score: " + score + " – weiter so!";
+          return false;
+        }
+        return true;
+      });
+
+      // Kollision prüfen
+      for (const obs of obstacles) {
+        if (
+          player.x < obs.x + obs.width &&
+          player.x + player.width > obs.x &&
+          player.y < obs.y + obs.height &&
+          player.y + player.height > obs.y
+        ) {
+          gameOver = true;
+          gameStatusElem.textContent =
+            "Game Over! Score: " + score + " – drücke R oder lade neu, um es nochmal zu versuchen.";
+          break;
+        }
+      }
+
+      drawGame();
+      requestAnimationFrame(updateGame);
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const gY = groundY();
+
+      // Himmel
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGradient.addColorStop(0, "#4c7cbc");
+      skyGradient.addColorStop(1, "#2c3d28");
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Boden
+      ctx.fillStyle = "#2c3d28";
+      ctx.fillRect(0, gY, canvas.width, canvas.height - gY);
+
+      // Boden-Deko (Gras-Striche)
+      ctx.strokeStyle = "#3c5d34";
+      for (let i = 0; i < canvas.width; i += 10) {
+        ctx.beginPath();
+        ctx.moveTo(i, gY);
+        ctx.lineTo(i + 2, gY - 6);
+        ctx.stroke();
+      }
+
+      // Player (Pfadfinder mit Halstuch)
+      ctx.fillStyle = "#fbeed3";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Halstuch
+      ctx.fillStyle = "#c93d3d";
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y + 12);
+      ctx.lineTo(player.x + player.width / 2, player.y + 20);
+      ctx.lineTo(player.x + player.width, player.y + 12);
+      ctx.closePath();
+      ctx.fill();
+
+      // Kopf
+      ctx.fillStyle = "#f5d6a0";
+      ctx.beginPath();
+      ctx.arc(
+        player.x + player.width / 2,
+        player.y - 10,
+        10,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      // Hindernisse (Baumstämme)
+      ctx.fillStyle = "#8b6b3e";
+      obstacles.forEach((obs) => {
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        ctx.strokeStyle = "#5f4324";
+        ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+      });
+    }
+
+    resetGame();
+    requestAnimationFrame(updateGame);
   </script>
 </body>
 </html>
