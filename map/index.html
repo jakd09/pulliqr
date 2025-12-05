@@ -476,19 +476,29 @@
         maxZoom: 18,
         attribution: "&copy; OpenStreetMap-Mitwirkende"
       }).addTo(map);
+      
     }
 
-    function anonymizeCoords(lat, lng) {
-      const approxLat = Math.round(lat);
-      const approxLng = Math.round(lng);
-      return { approxLat, approxLng };
-    }
-
-    function showMarker(lat, lng) {
+    function showMarker(lat, lng, isUser=false) {
       map.setView([lat, lng], 5);
-      L.marker([lat, lng]).addTo(map)
-        .bindPopup("Dein ungefährer Standort (max. ~100 km genau).")
-        .openPopup();
+      x=L.marker([lat, lng]).addTo(map);
+        if(isUser){
+          x.bindPopup("Dein Standort").openPopup();
+        }
+    }
+
+    function getMarkers(callback){
+      var xmlhttp = new XMLHttpRequest();
+
+      xmlhttp.onreadystatechange = function(){
+        if(this.readyState==4 && this.status==200){
+          callback(this.responseText);
+        }else if(this.readyState==4){
+          console.error("Error getting markers:", this.status);
+        }
+      };
+      xmlhttp.open("GET", "getCoords.php", true);
+      xmlhttp.send();
     }
 
     function locateUser() {
@@ -500,15 +510,14 @@
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const { approxLat, approxLng } = anonymizeCoords(lat, lng);
+          const approxLat = position.coords.latitude;
+          const approxLng = position.coords.longitude;
 
-          statusElem.textContent = "Ungefährer Standort erkannt.";
+          statusElem.textContent = "Standort erkannt.";
           coordsElem.textContent =
-            "Gerundete Koordinaten: " + approxLat.toFixed(0) + "°, " + approxLng.toFixed(0) + "°";
+            "Koordinaten: " + approxLat.toFixed(0) + "°, " + approxLng.toFixed(0) + "°";
 
-          showMarker(approxLat, approxLng);
+          showMarker(approxLat, approxLng, true);
         },
         (error) => {
           statusElem.textContent = "Standort konnte nicht ermittelt werden: " + error.message;
